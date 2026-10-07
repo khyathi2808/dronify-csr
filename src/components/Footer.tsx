@@ -1,0 +1,175 @@
+import React from 'react';
+import Link from 'next/link';
+import RequestPilotButton from './RequestPilotButton';
+
+const DronaLogo = ({ width = 30, height = 30 }) => (
+  <svg 
+    viewBox="207 117 386 386" 
+    width={width} 
+    height={height} 
+    xmlns="http://www.w3.org/2000/svg" 
+    fill="#C9A84C" 
+    aria-label="Drona"
+  >
+    <path d="M218.8,130.6c0,0,39.5,6.5,46.3,65.1c0,40.6,0,78.4,0,124.3c0,11,0,78.1,0,95.8l0,0l0,1.1c0,0.3,0,0.7,0,1l0,0l0,17.4c95.2-30.4,151.5,45.2,157.5,53.7c-48.8-72.1-110.9-77.8-140.5-75.7c-0.9-10.2,8.1-43.6,35.1-70.5c0.9-0.7,1.9-1.2,2.3-2.4c-0.5-0.3-1-0.5-1.4-0.7c-1.7-0.7-3.5-0.6-5.3-1c-2.7-0.6-4.6-2.9-4.7-5.6c-0.1-1.1,0.1-2.2,0.6-3.3c1-2.4,2.7-4.2,4.8-5.6c2.7-1.8,5.5-3.5,8.2-5.4c4.1-2.8,7.4-6.4,9.6-10.9c0.4-0.8,1-1.6,0.7-2.6c-0.2,0.1-0.4,0.2-0.5,0.3c-5.2,5.4-11.6,9.1-18.6,11.7c-3.1,1.2-6.1,2.9-8.6,5.2c-3.8,3.6-6.2,7.7-5.8,13c0,0.5,0.2,1.1-0.4,1.8c-1.7-3.3-2-6.5-1.3-9.8c1.1-5.5,4.3-9.7,8.5-13.1c2.5-2,5.3-3.8,7.9-5.7c3.5-2.5,6.4-5.8,8.4-9.6c3.7-7.2,4.3-14.4-0.5-21.8c-1.2-1.8-2.2-3.7-3.3-5.6c-6.4-11.2-10.3-23.7-10.4-36.6c-0.2-19,6.5-35.4,20.6-48.5c0.4-0.4,1.1-0.6,0.9-1.4c-10.5-3.9-16.9-12.3-17.5-23c0-0.1,0-0.2,0-0.2c-0.6-13.1,7-25.3,18.9-30.9c0.2-0.1,0.4-0.2,0.5-0.2C310.1,130.6,218.8,130.6,218.8,130.6z" />
+    <path d="M577.8,272.1c-3.7-20.5-10.7-39.8-21.2-57.8c-16.7-28.6-40-50.1-69.7-64.6c-26.8-13-55.3-18.8-84.8-19c-12.3-0.1-24.7-0.1-37-0.1c12.6,4.6,21.5,12.2,21.5,12.8c-18.4-10.1-39.2,4.1-45.4,14.6c-0.1,0.2-0.1,0.5,0.2,0.6c0.5-0.4,1-0.9,1.5-1.4c5.2-5,11.2-8.8,18.1-11c4.7-1.5,9.5-2.2,14.5-1.4c3.9,0.7,7.4,2.3,9.8,5.6c0.3,0.4,0.9,0.9,0.3,1.7c-7.2,0-14.1,1.6-20.6,4.6c-6.5,3-12.4,6.8-17.2,12.9c1.4-0.1,2.1-0.7,2.8-1.1c2.8-1.4,5.6-3,8.5-4.3c6.4-3,13.1-5,20.2-6c8.2-1.2,16.3-1.1,24.4,0c11.1,1.5,21.7,4.7,31.4,10.2c8.3,4.7,15.4,11,20,20c2,3.9,2.5,8.3,2.3,12.6c0,0.9-0.3,1.6-1.3,2c0.7-0.2,0.9,0.4,1.2,0.8c3.7,4.9,5.6,10.9,7.7,16.7c1.9,5.2,3.4,10.4,4.3,15.8c0.9,4.9,1.4,10-1.2,14.6c-0.5,0.8-0.2,1.4,0.1,2.2c1.2,2.8,2.5,5.7,3.6,8.5c3,7.3,6.2,14.5,8.6,22c1.8,5.7-1.6,11.3-7.2,13.5c-0.1,0-0.2,0.1-0.4,0.1c-1.3,0.2-1.4,1-1,2.1c0.1,0.3,0.2,0.7,0.3,1c1,5.1,0.2,9.6-4,13.1c-2.2,0.4-4.1,0.1-2,1.2c2.1,1,2.9,3.8,1.4,5.6c0,0,0,0,0,0c-2.3,2.8-2.1,5.7-0.3,8.6c1.3,2.1,2.8,4.1,4.2,6.2c3.9,5.8,6.4,12.1,7.4,19.1c1,7.2,0.3,14.2-2.8,20.9c-0.6,1.4-1.3,2.7-2.3,3.7c-0.7-0.2-0.2-1.2-1.2-1c-0.2,0.7-0.3,1.3-0.5,2c-4.5,14.6-14.7,23.2-28.8,27.9c-1.5,0.5-1.6,0.4-1.7-1.3c-0.1-6.8-2.1-13.4-6.1-18.8c-3.4-4.6-7.8-8.3-12.2-11.9c-6.1-5-11.7-10.4-16.4-16.8c-0.3-0.3-0.4-0.8-1.1-0.9c-0.8,19.9,42.8,66.8,49.7,83c5,11.6,8.4,23.5,8.1,36.2c0,0.3,0,0.7,0.3,1c110-15.8,116-135.5,117-155.7C581.7,305.3,580.8,288.6,577.8,272.1z" />
+    <path d="M377.6,431.6c0-0.1-0.3-0.4-0.7-0.9c-0.7-0.2-1.5-0.4-2.3-0.7C376.1,430.9,377.1,431.5,377.6,431.6z" />
+    <path d="M422.6,488.9c0.2,0.3,0.4,0.5,0.5,0.8C423.1,489.7,423,489.4,422.6,488.9z" />
+  </svg>
+);
+
+const Footer = () => {
+  return (
+    <footer style={{
+      background: 'rgb(7, 26, 17)',
+      borderTop: '1px solid rgba(236, 232, 220, 0.1)',
+      padding: '72px clamp(20px, 4vw, 48px) 0px',
+      position: 'relative',
+    }}>
+      <div style={{
+        maxWidth: '1200px',
+        margin: '0 auto',
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+        gap: '40px'
+      }}>
+        
+        {/* Logo & Description */}
+        <div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <DronaLogo />
+            <span style={{
+              fontFamily: '"IBM Plex Serif", Georgia, serif',
+              fontWeight: 600,
+              fontSize: '1.4rem',
+              color: 'rgb(236, 232, 220)'
+            }}>
+              Drona.
+            </span>
+          </div>
+          
+          <p style={{
+            fontFamily: '"IBM Plex Sans", system-ui, sans-serif',
+            fontSize: '0.85rem',
+            lineHeight: 1.65,
+            color: 'rgb(166, 188, 174)',
+            margin: '14px 0 20px',
+            maxWidth: '280px'
+          }}>
+            The EdTech vertical of Altumind. Prepare the environment. Understand the learner. Deliver with precision.
+          </p>
+
+          <RequestPilotButton />
+        </div>
+
+        {/* Products */}
+        <div>
+          <div style={{
+            fontFamily: '"IBM Plex Mono", ui-monospace, monospace',
+            fontWeight: 500,
+            letterSpacing: '0.32em',
+            fontSize: '0.7rem',
+            textTransform: 'uppercase',
+            color: 'rgb(110, 138, 123)'
+          }}>
+            CSR PLATFORM
+          </div>
+          <div style={{ height: '16px' }} />
+          
+          <div>
+            <Link href="/use-cases/csr/assessments" style={{ display: 'block', textDecoration: 'none', marginBottom: '14px' }}>
+              <div style={{ fontWeight: 500, fontSize: '0.92rem', color: 'rgb(236, 232, 220)' }}>Assessments</div>
+              <div style={{ fontSize: '0.78rem', color: 'rgb(166, 188, 174)' }}>Live diagnostic tracks</div>
+            </Link>
+
+            <Link href="/use-cases/csr/analytics" style={{ display: 'block', textDecoration: 'none', marginBottom: '14px' }}>
+              <div style={{ fontWeight: 500, fontSize: '0.92rem', color: 'rgb(236, 232, 220)' }}>Analytics</div>
+              <div style={{ fontSize: '0.78rem', color: 'rgb(166, 188, 174)' }}>Cognitive · Behavioral</div>
+            </Link>
+
+            <Link href="/use-cases/csr/insights" style={{ display: 'block', textDecoration: 'none', marginBottom: '14px' }}>
+              <div style={{ fontWeight: 500, fontSize: '0.92rem', color: 'rgb(236, 232, 220)' }}>Insights</div>
+              <div style={{ fontSize: '0.78rem', color: 'rgb(166, 188, 174)' }}>Money · Reputation · Attention · Pulse</div>
+            </Link>
+          </div>
+        </div>
+
+        {/* Contact */}
+        <div>
+          <div style={{
+            fontFamily: '"IBM Plex Mono", ui-monospace, monospace',
+            fontWeight: 500,
+            letterSpacing: '0.32em',
+            fontSize: '0.7rem',
+            textTransform: 'uppercase',
+            color: 'rgb(110, 138, 123)'
+          }}>
+            CONTACT
+          </div>
+          <div style={{ height: '16px' }} />
+          <div>
+            <a href="mailto:info@altumindglobal.com" style={{ textDecoration: 'none' }}>
+  <div style={{ fontSize: '0.88rem', color: 'rgb(166, 188, 174)', marginBottom: '8px', cursor: 'pointer' }}>
+    info@altumindglobal.com
+  </div>
+</a>
+
+          </div>
+        </div>
+
+        {/* Offices */}
+        <div>
+          <div style={{
+            fontFamily: '"IBM Plex Mono", ui-monospace, monospace',
+            fontWeight: 500,
+            letterSpacing: '0.32em',
+            fontSize: '0.7rem',
+            textTransform: 'uppercase',
+            color: 'rgb(110, 138, 123)'
+          }}>
+            OFFICES
+          </div>
+          <div style={{ height: '16px' }} />
+
+          {/* Bengaluru */}
+          <div style={{ marginBottom: '20px' }}>
+            <div style={{
+              fontFamily: '"IBM Plex Mono", ui-monospace, monospace',
+              fontSize: '0.6rem',
+              letterSpacing: '0.18em',
+              color: 'rgb(201, 168, 76)',
+              marginBottom: '7px'
+            }}>
+              BENGALURU
+            </div>
+            <div style={{ fontSize: '0.8rem', lineHeight: 1.55, color: 'rgb(166, 188, 174)' }}>#775, 100 Feet Rd,</div>
+            <div style={{ fontSize: '0.8rem', lineHeight: 1.55, color: 'rgb(166, 188, 174)' }}>Indiranagar, Bengaluru,</div>
+            <div style={{ fontSize: '0.8rem', lineHeight: 1.55, color: 'rgb(166, 188, 174)' }}>KA, 560038</div>
+          </div>
+
+          {/* London */}
+          <div>
+            <div style={{
+              fontFamily: '"IBM Plex Mono", ui-monospace, monospace',
+              fontSize: '0.6rem',
+              letterSpacing: '0.18em',
+              color: 'rgb(201, 168, 76)',
+              marginBottom: '7px'
+            }}>
+              LONDON
+            </div>
+            <div style={{ fontSize: '0.8rem', lineHeight: 1.55, color: 'rgb(166, 188, 174)' }}>ALTUMIND LTD</div>
+            <div style={{ fontSize: '0.8rem', lineHeight: 1.55, color: 'rgb(166, 188, 174)' }}>Registered in England &amp; Wales</div>
+            <div style={{ fontSize: '0.8rem', lineHeight: 1.55, color: 'rgb(166, 188, 174)' }}>Company No. 17184676</div>
+            <div style={{ fontSize: '0.8rem', lineHeight: 1.55, color: 'rgb(166, 188, 174)' }}>Registered Office: 128 City Road,</div>
+            <div style={{ fontSize: '0.8rem', lineHeight: 1.55, color: 'rgb(166, 188, 174)' }}>London EC1V 2NX, United Kingdom</div>
+          </div>
+        </div>
+      </div>
+
+      <div style={{ height: '56px' }} />
+    </footer>
+  );
+};
+
+export default Footer;

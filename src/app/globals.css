@@ -1,0 +1,70 @@
+@import "tailwindcss";
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  background: #0A2316;
+  -webkit-font-smoothing: antialiased;
+  font-variant-numeric: tabular-nums;
+}
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background:
+    radial-gradient(1200px 760px at 50% -8%, rgba(63,168,119,.10), transparent 60%),
+    radial-gradient(1000px 700px at 50% 118%, rgba(7,26,17,.85), transparent 62%);
+}
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  opacity: .32;
+  mix-blend-mode: multiply;
+  background-image:
+    repeating-linear-gradient(0deg, rgba(0,0,0,.20) 0, rgba(0,0,0,.20) 1px, transparent 1px, transparent 3px),
+    repeating-linear-gradient(90deg, rgba(0,0,0,.12) 0, rgba(0,0,0,.12) 1px, transparent 1px, transparent 3px);
+}
+#drona-root { position: relative; z-index: 1; }
+::selection { background: rgba(201,168,76,.25); color: #ECE8DC; }
+::-webkit-scrollbar { width: 10px; }
+::-webkit-scrollbar-track { background: #0A2316; }
+::-webkit-scrollbar-thumb { background: #154330; border-radius: 6px; }
+input::placeholder, textarea::placeholder { color: #6E8A7B; }
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes bloom {
+  from { opacity: 0; transform: scale(.96); }
+  to   { opacity: 1; transform: scale(1); }
+}
+@keyframes drawIn {
+  to { stroke-dashoffset: 0; }
+}
+@keyframes slideIn {
+  from { opacity: 0; transform: translateX(24px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { animation-duration: .001ms !important; transition-duration: .001ms !important; }
+}
+
+
+/* ─── CTABlock mobile margin ───────────────────────────────────── */
+@media (max-width: 639px) {
+  .cta-block { margin-left: 16px !important; margin-right: 16px !important; }
+}
+
+/* ─── Section horizontal scroll guard ─────────────────────────── */
+.workflow-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
+/* ─── Mobile hero input row ────────────────────────────────────── */
+.hero-input-row { display: flex; gap: 12px; flex-wrap: wrap; }
+.hero-email-input { flex: 1 1 200px; min-width: 0; }
