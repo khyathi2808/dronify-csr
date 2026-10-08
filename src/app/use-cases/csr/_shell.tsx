@@ -87,7 +87,7 @@ export function CSRSidebarShell({ children }: { children: ReactNode }) {
 
         <div style={{ padding: '16px 20px 0', marginTop: 8, borderTop: `1px solid ${T.line}` }}>
           <Link href="/use-cases/csr" style={{ fontFamily: T.sans, fontSize: '0.72rem', color: T.textDim, textDecoration: 'underline' }}>
-            Sign out
+            Exit portal
           </Link>
         </div>
       </div>

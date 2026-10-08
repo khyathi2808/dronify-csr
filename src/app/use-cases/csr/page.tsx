@@ -69,10 +69,10 @@ function Hero({ onBook }: { onBook: () => void }) {
           ← DRONA
         </Link>
         <div style={{ margin: '24px 0 18px' }}>
-          <span style={ew()}>Use Cases · CSR</span>
+          <span style={ew()}>CSR · Education</span>
         </div>
-        <h1 style={{ fontFamily: T.serif, fontWeight: 700, fontSize: 'clamp(52px,9vw,108px)', color: T.text, lineHeight: 0.95 }}>
-          CSR
+        <h1 style={{ fontFamily: T.serif, fontWeight: 700, fontSize: 'clamp(40px,6.5vw,80px)', color: T.text, lineHeight: 1.02, maxWidth: 900 }}>
+          Improving learning outcomes
         </h1>
         <div style={{ fontFamily: T.serif, fontStyle: 'italic', fontWeight: 600, fontSize: 'clamp(20px,2.8vw,30px)', color: T.goldBright, marginTop: 12 }}>
           Beyond participation. Measure capability.
@@ -151,22 +151,15 @@ function LandingView({ onSignIn }: { onSignIn: () => void }) {
               <span style={{ flex: 1, height: 1, background: T.line }} />
             </div>
           </div> */}
-          <h2 style={{ fontFamily: T.serif, fontWeight: 500, fontSize: '1.5rem', color: T.text, margin: '0 0 6px' }}>Sign in</h2>
-          <div style={{ fontFamily: T.sans, fontSize: '0.78rem', color: T.textDim, marginBottom: 26 }}>Access your CSR portfolio dashboard</div>
-          {['Email', 'Password'].map((label, i) => (
-            <div key={label} style={{ marginBottom: 16 }}>
-              <label style={{ display: 'block', fontFamily: T.sans, fontSize: '0.72rem', color: T.textSec, marginBottom: 5 }}>{label}</label>
-              <input
-                type={i === 1 ? 'password' : 'text'} placeholder={i === 1 ? '••••••••' : 'you@foundation.org'}
-                style={{ width: '100%', fontFamily: T.sans, fontSize: '0.82rem', padding: '10px 12px', borderRadius: 8, border: `1px solid ${T.line}`, background: T.card2, color: T.text }}
-              />
-            </div>
-          ))}
+          <h2 style={{ fontFamily: T.serif, fontWeight: 500, fontSize: '1.5rem', color: T.text, margin: '0 0 6px' }}>Explore the portal</h2>
+          <div style={{ fontFamily: T.sans, fontSize: '0.78rem', color: T.textDim, lineHeight: 1.6, marginBottom: 26 }}>
+            No login needed — step straight into the CSR portfolio dashboard and try it with sample data.
+          </div>
           <button
             type="button" onClick={onSignIn}
             style={{ width: '100%', background: T.gold, color: T.felt0, border: 'none', borderRadius: 8, padding: '13px 0', fontSize: '0.86rem', fontWeight: 600, fontFamily: T.sans, cursor: 'pointer', marginTop: 6 }}
           >
-            Sign in
+            Explore the Portal →
           </button>
           <div style={{ fontFamily: T.sans, fontSize: '0.74rem', color: T.textDim, textAlign: 'center' as const, marginTop: 18 }}>
             New foundation? <span style={{ color: T.gold, cursor: 'pointer' }}>Request access</span>
@@ -275,7 +268,7 @@ export default function CSRPage() {
         ))}
         <div style={{ padding: '16px 20px 0', marginTop: 8, borderTop: `1px solid ${T.line}` }}>
           <span onClick={() => setSignedIn(false)} style={{ fontFamily: T.sans, fontSize: '0.72rem', color: T.textDim, cursor: 'pointer', textDecoration: 'underline' }}>
-            Sign out
+            Exit portal
           </span>
         </div>
       </div>

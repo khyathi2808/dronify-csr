@@ -28,13 +28,13 @@ export default function AssessmentsPickerPage() {
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(280px,1fr))', gap: 20, marginTop: 32 }}>
           {TRACKS.map(t => (
             <div key={t.key} style={cardStyle({ padding: 28 })}>
-              <span style={{ fontFamily: T.mono, fontSize: '0.66rem', letterSpacing: '0.1em', color: T.textDim }}>{t.tradeCode} · NSQF {t.nsqfLevel}</span>
+              <span style={{ fontFamily: T.mono, fontSize: '0.66rem', letterSpacing: '0.1em', color: T.textDim }}>{t.gradeLevel} · {t.subject}</span>
               <div style={{ fontFamily: T.serif, fontWeight: 600, fontSize: '1.4rem', color: T.text, marginTop: 8 }}>{t.label}</div>
               <div style={{
                 display: 'inline-block', marginTop: 10, fontFamily: T.sans, fontSize: '0.78rem', color: T.textSec,
                 background: T.felt0, border: `1px solid ${T.line}`, borderRadius: 100, padding: '5px 14px',
               }}>
-                {t.sector}
+                {t.topic}
               </div>
               <p style={{ fontFamily: T.sans, fontSize: '0.86rem', color: T.textSec, marginTop: 16, lineHeight: 1.6 }}>
                 Two hands, six Bloom-aligned questions each — declare where you stand before each one.
@@ -57,7 +57,7 @@ export default function AssessmentsPickerPage() {
           <div>
             <div style={{ fontFamily: T.serif, fontWeight: 600, fontSize: '1.3rem', color: T.text }}>Assessment Statistics</div>
             <p style={{ fontFamily: T.sans, fontSize: '0.82rem', color: T.textSec, marginTop: 6, maxWidth: 560 }}>
-              How the network is doing across every scheduled and completed assessment — by subject and trade domain.
+              How the network is doing across every scheduled and completed assessment — by subject.
             </p>
           </div>
           <button
