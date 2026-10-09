@@ -1715,34 +1715,45 @@ const reportTitle = f => { const t = f.replace(/\.pdf$/i, '').replace(/-/g, ' ')
 function gateDownload(key, file){
   gatePending = {key, file};
   const lead = savedLead() || {};
-  openModal('Download report', `<form id="leadform" class="form" novalidate>
-      <p class="muted" style="margin:0;grid-column:1/-1">Enter your name and phone number to download the <b style="color:var(--ink)">${esc(reportTitle(file))}</b> report.</p>
-      <div class="field full" id="l-name-f"><label for="l-name">Name</label><input id="l-name" autocomplete="name" value="${esc(lead.name || '')}"><span class="hint" id="l-name-h"></span></div>
-      <div class="field full" id="l-phone-f"><label for="l-phone">Phone number</label><input id="l-phone" type="tel" inputmode="tel" autocomplete="tel" placeholder="+91 98765 43210" value="${esc(lead.phone || '')}"><span class="hint" id="l-phone-h">We use this only to follow up about the programme.</span></div>
+  const field = (id, label, type, ac, val, hint) => `<div class="field full" id="l-${id}-f"><label for="l-${id}">${label}</label><input id="l-${id}" type="${type}" autocomplete="${ac}" value="${esc(val || '')}"><span class="hint" id="l-${id}-h">${hint || ''}</span></div>`;
+  openModal('A few details, then the full report is yours.', `<form id="leadform" class="form" novalidate>
+      <p class="muted" style="margin:0;grid-column:1/-1">You are downloading the <b style="color:var(--ink)">${esc(reportTitle(file))}</b> report.</p>
+      ${field('name', 'Name', 'text', 'name', lead.name)}
+      ${field('school', 'School', 'text', 'organization', lead.school)}
+      ${field('email', 'Email', 'email', 'email', lead.email, 'We’ll send the report to this email.')}
       <p class="field full caption" id="l-status" style="margin:0" aria-live="polite"></p></form>`,
-    `<button class="btn btn-ghost" data-act="modal-close">Cancel</button><button class="btn btn-primary" type="submit" form="leadform" id="l-submit">${icon('down')}Download report</button>`);
+    `<button class="btn btn-ghost" data-act="modal-close">Cancel</button><button class="btn btn-primary" type="submit" form="leadform" id="l-submit">${icon('down')}Get the report</button>`);
+  $('#mh').insertAdjacentHTML('afterbegin', '<span class="mono-label" style="display:block;color:var(--brand-gold);margin-bottom:4px">Before you download</span>');
   track('report_gate_open', {report:key});
+}
+function pdfBlob(key){
+  const bin = atob(PDFS[key] || ''), u8 = new Uint8Array(bin.length); for (let i=0;i<bin.length;i++) u8[i] = bin.charCodeAt(i);
+  return new Blob([u8], {type:'application/pdf'});
 }
 function submitLead(){
   if (!gatePending) return;
-  const name = $('#l-name').value.trim(), phone = $('#l-phone').value.trim(), digits = phone.replace(/\D/g, '');
-  const nameOk = name.length >= 2, phoneOk = digits.length >= 10 && digits.length <= 13 && /^[+\d\s()-]+$/.test(phone);
-  $('#l-name-f').classList.toggle('err', !nameOk); $('#l-name-h').textContent = nameOk ? '' : 'Please enter your name.';
-  $('#l-phone-f').classList.toggle('err', !phoneOk); $('#l-phone-h').textContent = phoneOk ? 'We use this only to follow up about the programme.' : 'Please enter a valid phone number (10 digits, country code optional).';
-  if (!nameOk) return $('#l-name').focus();
-  if (!phoneOk) return $('#l-phone').focus();
-  const {key, file} = gatePending;
-  try { localStorage.setItem(LEAD_KEY, JSON.stringify({name, phone})); } catch(e){}
-  const payload = {event:'form_submit', site:LEAD_SITE, page:location.href, anonId:anonId(), timestamp:new Date().toISOString(), name, phone, report:file, filename:file.replace(/\.pdf$/i, '')};
-  fetch(LEAD_ENDPOINT, {method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'}, body:JSON.stringify(payload)}).catch(() => {});
-  track('report_form_submit', {report:key});
+  const v = id => $('#l-' + id).value.trim();
+  const name = v('name'), school = v('school'), email = v('email');
+  const checks = [['name', name.length >= 2, 'Please enter your name.', ''], ['school', school.length >= 2, 'Please enter your school.', ''],
+    ['email', /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email), 'Please enter a valid email address.', 'We’ll send the report to this email.']];
+  checks.forEach(([id, ok, bad, good]) => { $(`#l-${id}-f`).classList.toggle('err', !ok); $(`#l-${id}-h`).textContent = ok ? good : bad; });
+  const firstBad = checks.find(c => !c[1]); if (firstBad) return $('#l-' + firstBad[0]).focus();
+  const {key, file} = gatePending; gatePending = null;
+  try { localStorage.setItem(LEAD_KEY, JSON.stringify({name, school, email})); } catch(e){}
+  track('report_form_submit', {report:key, school});
+  const status = (t, cls) => { const s = $('#l-status'); if (s){ s.textContent = t; s.style.color = cls === 'ok' ? 'var(--status-positive-text)' : cls === 'err' ? 'var(--status-urgent-text)' : ''; } };
   $('#l-submit').disabled = true;
-  $('#l-status').textContent = 'Preparing your report…';
-  downloadPdf(key, file).then(() => {
-    $('#l-status') && ($('#l-status').textContent = 'Downloaded. Thank you!');
-    setTimeout(() => { if ($('#leadform')) closeModal(); }, 1400);
-  });
-  gatePending = null;
+  status('Preparing your report…');
+  downloadPdf(key, file);
+  /* same payload shape as the Priority Attention Grid site, so the Apps Script can email the PDF */
+  const payload = {event:'form_submit', site:LEAD_SITE, page:location.href, anonId:anonId(), timestamp:new Date().toISOString(), name, school, email, report:file, filename:file.replace(/\.pdf$/i, '')};
+  new Promise(res => { const r = new FileReader(); r.onloadend = () => res(String(r.result).split(',')[1] || ''); r.onerror = () => res(''); r.readAsDataURL(pdfBlob(key)); })
+    .then(b64 => fetch(LEAD_ENDPOINT, {method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'}, body:JSON.stringify(Object.assign(payload, {pdfBase64:b64}))}))
+    .then(r => r.json()).catch(() => ({ok:false}))
+    .then(res => {
+      status(res && res.emailSent ? 'Downloaded, and a copy is on its way to your email.' : 'Downloaded. (Email delivery isn’t connected yet, so you have the file directly.)', 'ok');
+      setTimeout(() => { if ($('#leadform')) closeModal(); }, 2200);
+    });
 }
 
 /* ============================ ROUTING ============================ */
