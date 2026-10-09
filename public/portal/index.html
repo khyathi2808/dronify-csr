@@ -537,6 +537,8 @@ body{background:radial-gradient(1200px 760px at 50% -8%,rgba(63,168,119,.10),tra
 .brand-portal .t{font:600 14px/18px var(--font-display);color:var(--ink-inverse)}
 .btn,.chip,.seg,.fsel select,.statechip,.crumbs{border-radius:var(--radius-pill)}
 .top-in{gap:16px}
+.an-seg{padding:4px}
+.an-seg button{height:44px;padding:0 26px;font:600 15px/20px var(--font-sans)}
 .nav a{padding:0 10px}
 .search input{width:210px}
 @media (max-width:1560px){.brand-portal{display:none}}
@@ -1650,7 +1652,7 @@ function renderAnalytics(){
   $('#main').innerHTML = `<section class="view wrap" aria-label="Analytics">
     <div class="screen-head"><div><div class="mono-label">School analytics · Annual Exam snapshot</div><h1 class="display-sm" style="margin-top:6px">Cognitive and behavioural analytics</h1>
       <p>Ten metrics across every section, from Grade 6 to Grade 10: how deeply students understand, and how they decide.</p></div>
-      <div class="seg" role="group" aria-label="Category">${['Cognitive','Behavioral'].map(c => `<button data-an-tab="${c}" aria-pressed="${anTab === c}">${c === 'Behavioral' ? 'Behavioural' : c} · ${METRICS.filter(x => x.category === c).length}</button>`).join('')}</div></div>
+      <div class="seg an-seg" role="group" aria-label="Category">${['Cognitive','Behavioral'].map(c => `<button data-an-tab="${c}" aria-pressed="${anTab === c}">${c === 'Behavioral' ? 'Behavioural' : c} · ${METRICS.filter(x => x.category === c).length}</button>`).join('')}</div></div>
     <div class="grid">${shown.map(x => `<button class="ax-card ax-pick" data-goto="analytics-${esc(x.key)}">
       <span class="mono-label">${x.category === 'Behavioral' ? 'Behavioural' : x.category}</span>
       <span class="t">${esc(x.name)}</span><span class="d">${esc(x.title)}</span>
