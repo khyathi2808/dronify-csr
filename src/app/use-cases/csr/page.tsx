@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { T } from '@/lib/theme';
+import { withBase } from '@/lib/base-path';
 import DronaMark from '@/components/DronaMark';
 import BookingModal from '@/components/BookingModal';
 import { ew } from './_ui';
@@ -97,7 +98,11 @@ function Hero({ onBook }: { onBook: () => void }) {
   );
 }
 
-function LandingView({ onSignIn }: { onSignIn: () => void }) {
+// The Programme Portal is a standalone static page (public/portal/index.html) with the
+// school map, assessments and analytics, so "Explore the Portal" leaves the Next app for it.
+const PORTAL_HREF = withBase('/portal/index.html');
+
+function LandingView() {
   const stats = [
     { v: TOTAL_STATES, l: 'States covered' },
     { v: TOTAL_DISTRICTS, l: 'Districts covered' },
@@ -155,12 +160,12 @@ function LandingView({ onSignIn }: { onSignIn: () => void }) {
           <div style={{ fontFamily: T.sans, fontSize: '0.78rem', color: T.textDim, lineHeight: 1.6, marginBottom: 26 }}>
             No login needed — step straight into the CSR portfolio dashboard and try it with sample data.
           </div>
-          <button
-            type="button" onClick={onSignIn}
-            style={{ width: '100%', background: T.gold, color: T.felt0, border: 'none', borderRadius: 8, padding: '13px 0', fontSize: '0.86rem', fontWeight: 600, fontFamily: T.sans, cursor: 'pointer', marginTop: 6 }}
+          <a
+            href={PORTAL_HREF}
+            style={{ display: 'block', textAlign: 'center' as const, textDecoration: 'none', width: '100%', background: T.gold, color: T.felt0, border: 'none', borderRadius: 8, padding: '13px 0', fontSize: '0.86rem', fontWeight: 600, fontFamily: T.sans, cursor: 'pointer', marginTop: 6 }}
           >
             Explore the Portal →
-          </button>
+          </a>
           <div style={{ fontFamily: T.sans, fontSize: '0.74rem', color: T.textDim, textAlign: 'center' as const, marginTop: 18 }}>
             New foundation? <span style={{ color: T.gold, cursor: 'pointer' }}>Request access</span>
           </div>
@@ -207,7 +212,7 @@ export default function CSRPage() {
     return (
       <div>
         <Hero onBook={() => setBookingOpen(true)} />
-        <LandingView onSignIn={() => setSignedIn(true)} />
+        <LandingView />
         <BookingModal open={bookingOpen} onClose={() => setBookingOpen(false)} />
       </div>
     );
