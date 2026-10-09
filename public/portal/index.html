@@ -539,7 +539,7 @@ body{background:radial-gradient(1200px 760px at 50% -8%,rgba(63,168,119,.10),tra
 .top-in{gap:16px}
 .nav a{padding:0 10px}
 .search input{width:210px}
-@media (max-width:1320px){.brand-portal{display:none}}
+@media (max-width:1560px){.brand-portal{display:none}}
 
 </style>
 <div id="app"></div>
@@ -837,6 +837,7 @@ function renderShell(){
     <nav class="nav" aria-label="Main">${NAV.map(([k,n]) => `<a href="#${k}" data-nav="${k}">${n}</a>`).join('')}</nav>
     <div class="top-right">
       ${/^https?:$/.test(location.protocol) ? '<a class="csr-back" href="../use-cases/csr/">← CSR site</a>' : ''}
+      <button class="btn btn-primary btn-sm dl-report" data-act="pdf" data-key="board" data-file="board-summary.pdf">${icon('down')}Download report</button>
       <div class="search" role="search">${icon('search')}
         <input id="q" type="search" placeholder="Search a school or town" autocomplete="off" aria-label="Search a school or town" aria-controls="qres" aria-expanded="false">
         <div class="search-res" id="qres" role="listbox" hidden></div></div>
@@ -1695,6 +1696,53 @@ function anClick(e){
   anTab = b.dataset.anTab; renderAnalytics(); const f = $(`[data-an-tab="${anTab}"]`); f && f.focus();
 }
 
+
+/* ============================ REPORT DOWNLOAD GATE ============================ */
+/* Leads go to the same Apps Script endpoint as khyathi2808.github.io/priority-attention-grid, tagged with LEAD_SITE. */
+const LEAD_ENDPOINT = 'https://script.google.com/macros/s/AKfycbwCLRExfcEaSdEcLGiTgVZ97AXH4xuNwVdoGizQajtV9BaXU9YWjtRLWfIZRgbugF5T/exec';
+const LEAD_SITE = 'Drona Programme Portal';
+const LEAD_KEY = 'drona_portal_lead';
+function anonId(){
+  try { let id = localStorage.getItem('dronafy_anon_id');
+    if (!id){ id = 'anon_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 10); localStorage.setItem('dronafy_anon_id', id); }
+    return id; } catch(e){ return 'anon_nostore'; }
+}
+function savedLead(){ try { return JSON.parse(localStorage.getItem(LEAD_KEY) || 'null'); } catch(e){ return null; } }
+let gatePending = null;
+const reportTitle = f => { const t = f.replace(/\.pdf$/i, '').replace(/-/g, ' '); return t.charAt(0).toUpperCase() + t.slice(1); };
+function gateDownload(key, file){
+  gatePending = {key, file};
+  const lead = savedLead() || {};
+  openModal('Download report', `<form id="leadform" class="form" novalidate>
+      <p class="muted" style="margin:0;grid-column:1/-1">Enter your name and phone number to download the <b style="color:var(--ink)">${esc(reportTitle(file))}</b> report.</p>
+      <div class="field full" id="l-name-f"><label for="l-name">Name</label><input id="l-name" autocomplete="name" value="${esc(lead.name || '')}"><span class="hint" id="l-name-h"></span></div>
+      <div class="field full" id="l-phone-f"><label for="l-phone">Phone number</label><input id="l-phone" type="tel" inputmode="tel" autocomplete="tel" placeholder="+91 98765 43210" value="${esc(lead.phone || '')}"><span class="hint" id="l-phone-h">We use this only to follow up about the programme.</span></div>
+      <p class="field full caption" id="l-status" style="margin:0" aria-live="polite"></p></form>`,
+    `<button class="btn btn-ghost" data-act="modal-close">Cancel</button><button class="btn btn-primary" type="submit" form="leadform" id="l-submit">${icon('down')}Download report</button>`);
+  track('report_gate_open', {report:key});
+}
+function submitLead(){
+  if (!gatePending) return;
+  const name = $('#l-name').value.trim(), phone = $('#l-phone').value.trim(), digits = phone.replace(/\D/g, '');
+  const nameOk = name.length >= 2, phoneOk = digits.length >= 10 && digits.length <= 13 && /^[+\d\s()-]+$/.test(phone);
+  $('#l-name-f').classList.toggle('err', !nameOk); $('#l-name-h').textContent = nameOk ? '' : 'Please enter your name.';
+  $('#l-phone-f').classList.toggle('err', !phoneOk); $('#l-phone-h').textContent = phoneOk ? 'We use this only to follow up about the programme.' : 'Please enter a valid phone number (10 digits, country code optional).';
+  if (!nameOk) return $('#l-name').focus();
+  if (!phoneOk) return $('#l-phone').focus();
+  const {key, file} = gatePending;
+  try { localStorage.setItem(LEAD_KEY, JSON.stringify({name, phone})); } catch(e){}
+  const payload = {event:'form_submit', site:LEAD_SITE, page:location.href, anonId:anonId(), timestamp:new Date().toISOString(), name, phone, report:file, filename:file.replace(/\.pdf$/i, '')};
+  fetch(LEAD_ENDPOINT, {method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'}, body:JSON.stringify(payload)}).catch(() => {});
+  track('report_form_submit', {report:key});
+  $('#l-submit').disabled = true;
+  $('#l-status').textContent = 'Preparing your report…';
+  downloadPdf(key, file).then(() => {
+    $('#l-status') && ($('#l-status').textContent = 'Downloaded. Thank you!');
+    setTimeout(() => { if ($('#leadform')) closeModal(); }, 1400);
+  });
+  gatePending = null;
+}
+
 /* ============================ ROUTING ============================ */
 function parseHash(){
   const h = decodeURIComponent(location.hash.replace(/^#/, ''));
@@ -1824,14 +1872,14 @@ function bind(){
     if (a === 'add') return addForm();
     if (a === 'add-submit') return submitAdd();
     if (a === 'modal-close') return closeModal();
-    if (a === 'pdf'){ track('report_download', {report:el.dataset.key.startsWith('school-')?'school':el.dataset.key}); return downloadPdf(el.dataset.key, el.dataset.file); }
+    if (a === 'pdf'){ track('report_download', {report:el.dataset.key.startsWith('school-')?'school':el.dataset.key}); return gateDownload(el.dataset.key, el.dataset.file); }
   });
   document.addEventListener('change', e => {
     const t = e.target;
     if (t.id === 'f-state' || t.id === 'f-partner' || t.id === 'f-status'){ UI.f[t.id.slice(2)] = t.value; renderLensBar(); if (UI.screen==='map') drawMapLayers(); else renderSchools(); const n = $('#'+t.id); n && n.focus(); }
     if (t.id === 'sort'){ UI.sort = t.value; renderSchools(); $('#sort').focus(); }
   });
-  document.addEventListener('submit', e => { e.preventDefault(); if (e.target.id === 'addform') submitAdd(); });
+  document.addEventListener('submit', e => { e.preventDefault(); if (e.target.id === 'addform') submitAdd(); if (e.target.id === 'leadform') submitLead(); });
   document.addEventListener('mouseover', e => { const el = e.target.closest('[data-tip]'); if (el && el !== tipFor) showTip(el); else if (!el && tipFor) hideTip();
     const jt = e.target.closest('.jt'); if (jt && !panelState.playing){ morphTo(byId(UI.open).series[+jt.dataset.cyc].v, 220); markCycle(+jt.dataset.cyc); } });
   document.addEventListener('mouseout', e => { if (e.target.closest('.journey') && !e.relatedTarget?.closest?.('.journey') && !panelState.playing && UI.open){ const s = byId(UI.open); if (s && s.series.length) { morphTo(s.series[s.series.length-1].v, 220); markCycle(-1); } } });
