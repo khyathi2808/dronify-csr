@@ -504,6 +504,34 @@ body.docked .foot{margin-right:var(--panel-w)}
 .an-trail::before{content:"";position:absolute;left:8px;right:8px;top:11px;height:2px;background:var(--border)}
 .an-trail i{width:14px;height:14px;border-radius:50%;justify-self:center;position:relative}
 .an-axis{display:grid;font:500 10.5px/14px var(--font-mono);color:var(--ink-tertiary);text-align:center}
+.dd-hint{display:flex;align-items:center;gap:6px;margin:-8px 0 14px;font-size:12.5px;color:var(--ink-secondary)}
+.dd-hint svg{width:15px;height:15px;flex:none;color:var(--brand-gold)}
+.dd-hit{cursor:pointer;transition:box-shadow .12s}
+.dd-hit:hover{box-shadow:0 0 0 2px var(--border-strong)}
+.dd-hit.dd-on{box-shadow:0 0 0 2px var(--brand-gold)}
+.an-stem.dd-hit,.an-waffle.dd-hit{border-radius:6px}
+.an-trail i.dd-hit.dd-on{box-shadow:0 0 0 3px var(--brand-gold)}
+.dd-lvl{background:var(--surface-200);border:1px solid var(--border);border-left:3px solid var(--acc);border-radius:var(--radius-lg);padding:16px 18px;margin-top:14px;box-shadow:var(--shadow-sm)}
+.dd-tag{font:600 11px/16px var(--font-mono);letter-spacing:.1em;text-transform:uppercase;color:var(--acc)}
+.dd-t{font:600 16px/22px var(--font-display);color:var(--ink);margin-top:6px}
+.dd-s{font-size:12.5px;color:var(--ink-secondary);margin:4px 0 12px}
+.dd-bar{display:flex;height:30px;border-radius:6px;overflow:hidden}
+.dd-bar button{border:0;padding:0;cursor:pointer}
+.dd-bar button.on{outline:2px solid var(--ink);outline-offset:-2px}
+.dd-cards{display:grid;gap:10px}
+.dd-card{display:flex;flex-direction:column;align-items:flex-start;gap:2px;text-align:left;padding:10px 12px;border-radius:8px;border:1px solid var(--border);background:color-mix(in srgb,var(--c) 12%,transparent);cursor:pointer;min-width:0}
+.dd-card.on{outline:2px solid var(--brand-gold);outline-offset:-1px}
+.dd-card b{font:700 19px/24px var(--font-mono);color:var(--ink)}
+.dd-card>span{font-size:12px;color:var(--ink-secondary);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%}
+.dd-card>i{display:block;width:100%;height:4px;border-radius:99px;background:var(--border);margin-top:6px}
+.dd-card>i>i{display:block;height:100%;border-radius:99px;background:var(--c)}
+.dd-card em{font:600 11px/16px var(--font-mono);font-style:normal;margin-top:6px}
+.dd-tbl{width:100%;border-collapse:collapse;min-width:360px;margin-top:12px}
+.dd-tbl th{text-align:left;font:500 11px/16px var(--font-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--ink-tertiary);padding-bottom:6px;border-bottom:1px solid var(--border)}
+.dd-tbl td{padding:8px 0;font-size:13.5px;color:var(--ink);border-bottom:1px solid var(--border)}
+.dd-pill{font:600 11.5px/16px var(--font-sans);padding:2px 10px;border-radius:99px;background:color-mix(in srgb,var(--c) 22%,transparent);color:var(--ink);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--c) 60%,transparent)}
+.dd-pages{display:flex;align-items:center;gap:12px;margin-top:12px}
+@media (max-width:719px){.dd-cards{grid-template-columns:repeat(2,minmax(0,1fr))!important}}
 .an-formula{font:500 12px/18px var(--font-mono);color:var(--ink-tertiary);margin-top:16px;padding-top:12px;border-top:1px solid var(--border)}
 .csr-back{display:inline-flex;align-items:center;height:32px;padding:0 12px;border-radius:var(--radius-sm);color:var(--ink-inverse-secondary);text-decoration:none;font:600 12px/16px var(--font-sans);border:1px solid rgba(232,228,216,.22)}
 .csr-back:hover{color:var(--ink-inverse);background:rgba(255,255,255,.06)}
@@ -1667,33 +1695,118 @@ function labelOf(m, color){
   m.legend.forEach(l => { const d = rgbOf(l.color).reduce((a, v, i) => a + (v - c[i]) ** 2, 0); if (d < bd){ bd = d; best = l; } });
   return best.label;
 }
+/* ---------- analytics drill-down (ported from dronify_prod use-cases/_drilldown.tsx + _drilldown-shared.ts) ----------
+   No backend here, so per-student counts are synthesized deterministically from what each chart cell already encodes,
+   seeded by the cell's identity so the same cell always shows the same numbers and names. */
+const COHORT_TOTAL = 28, DD_PAGE = 6;
+function ddHash(s){ let h = 2166136261; for (let i = 0; i < s.length; i++){ h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; }
+function mulberry32(seed){ let a = seed; return () => { a |= 0; a = (a + 0x6d2b79f5) | 0; let t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
+function synthesizeVals(domIndex, nLabels, seed, total = COHORT_TOTAL, domShare){
+  const rnd = mulberry32(ddHash(seed)), di = domIndex >= 0 && domIndex < nLabels ? domIndex : 0;
+  const share = domShare ?? (0.42 + rnd() * 0.3), domCount = Math.max(1, Math.min(total, Math.round(total * share)));
+  const vals = new Array(nLabels).fill(0); vals[di] = domCount; let remaining = total - domCount;
+  const others = [...Array(nLabels).keys()].filter(i => i !== di), weights = others.map(() => rnd() + 0.15), wSum = weights.reduce((a, b) => a + b, 0) || 1;
+  others.forEach((i, idx) => { const v = idx === others.length - 1 ? remaining : Math.round(remaining * (weights[idx] / wSum)); vals[i] = Math.max(0, v); remaining -= vals[i]; });
+  return vals;
+}
+const FIRST_NAMES = ['Farah','Nikhil','Sanjay','Ananya','Suresh','Deepa','Priya','Rahul','Kavya','Arjun','Meera','Vikram','Divya','Rohan','Sneha','Aditya','Pooja','Karan','Ishita','Manoj'];
+const LAST_NAMES = ['Khan','Bhatt','Kumar','Rao','Nair','Krishnan','Sharma','Reddy','Iyer','Gupta','Patel','Menon','Verma','Joshi','Pillai','Chauhan'];
+function studentNameFor(seed, i){ const h = ddHash(`${seed}::${i}`); return `${FIRST_NAMES[h % FIRST_NAMES.length]} ${LAST_NAMES[(h >>> 8) % LAST_NAMES.length]}`; }
+const legendIndex = (m, color) => color ? m.legend.findIndex(l => l.label === labelOf(m, color)) : -1;
+let DD = null;   // {metric, ri, ci, rowKey, colKey, vals, prevVals, label, page}
+function ddSelection(m, ri, ci){
+  const c = m.chart, row = c.rows[ri], n = m.legend.length;
+  if (c.type === 'heatmap' || c.type === 'trail'){
+    const idx = j => c.type === 'heatmap' ? legendIndex(m, row.cells[j]) : m.legend.findIndex(l => l.label.toLowerCase().startsWith(row.bands[j]));
+    const vals = synthesizeVals(idx(ci), n, `${m.key}:${row.centre}:${c.columns[ci]}`);
+    const prevVals = ci > 0 && idx(ci - 1) >= 0 ? synthesizeVals(idx(ci - 1), n, `${m.key}:${row.centre}:${c.columns[ci - 1]}`) : null;
+    return {rowKey:row.centre, colKey:c.columns[ci], vals, prevVals};
+  }
+  const vals = new Array(n).fill(0);
+  if (c.type === 'bar') row.segments.forEach(s => { const li = legendIndex(m, s.color); if (li >= 0) vals[li] = Math.round(s.pct / 100 * COHORT_TOTAL); });
+  else if (c.type === 'waffle') row.squares.forEach(sq => { const li = legendIndex(m, sq); if (li >= 0) vals[li]++; });
+  else return {rowKey:row.centre, colKey:'Latest', vals:synthesizeVals(legendIndex(m, row.color), n, `${m.key}:${row.centre}`, COHORT_TOTAL, row.pct / 100), prevVals:null};
+  return {rowKey:row.centre, colKey:'Latest', vals, prevVals:null};
+}
+const ddAttr = (ri, ci, label) => ` data-dd="${ri}:${ci}" role="button" aria-label="${esc(label)}: open drill-down"`;
 function metricChart(m){
   const c = m.chart;
   if (c.type === 'heatmap') return `<div class="an-scroll"><table class="an-tbl"><thead><tr><th class="r">Section</th>${c.columns.map(h => `<th>${esc(h)}</th>`).join('')}</tr></thead><tbody>
-    ${c.rows.map(r => `<tr><td class="r">${esc(r.centre)}</td>${r.cells.map((v, i) => `<td><div class="an-cell" tabindex="0" style="background:${v || 'transparent'}"${tip(r.centre, c.columns[i], null, [['', labelOf(m, v)]])}></div></td>`).join('')}</tr>`).join('')}</tbody></table></div>`;
-  if (c.type === 'bar') return `<div class="an-scroll"><div class="an-rows">${c.rows.map(r => `<div class="an-row"><span class="r">${esc(r.centre)}</span><div class="an-bar">${r.segments.map(s => `<i tabindex="0" style="width:${s.pct}%;background:${s.color}"${tip(r.centre, labelOf(m, s.color), null, [['', s.pct + '% of students']])}></i>`).join('')}</div></div>`).join('')}</div></div>`;
-  if (c.type === 'waffle') return `<div class="an-scroll"><div class="an-rows">${c.rows.map(r => `<div class="an-row"><span class="r">${esc(r.centre)}</span><div class="an-waffle">${r.squares.map(s => `<i style="background:${s}" title="${esc(labelOf(m, s))}"></i>`).join('')}<span class="caption" style="margin-left:6px">${r.squares.length} students</span></div></div>`).join('')}</div></div>`;
+    ${c.rows.map((r, ri) => `<tr><td class="r">${esc(r.centre)}</td>${r.cells.map((v, i) => `<td><div class="an-cell dd-hit" tabindex="0"${ddAttr(ri, i, r.centre + ', ' + c.columns[i])} style="background:${v || 'transparent'}"${tip(r.centre, c.columns[i], null, [['', labelOf(m, v)], ['', 'Click for drill-down']])}></div></td>`).join('')}</tr>`).join('')}</tbody></table></div>`;
+  if (c.type === 'bar') return `<div class="an-scroll"><div class="an-rows">${c.rows.map((r, ri) => `<div class="an-row"><span class="r">${esc(r.centre)}</span><div class="an-bar dd-hit" tabindex="0"${ddAttr(ri, -1, r.centre)}>${r.segments.map(s => `<i style="width:${s.pct}%;background:${s.color}"${tip(r.centre, labelOf(m, s.color), null, [['', s.pct + '% of students'], ['', 'Click for drill-down']])}></i>`).join('')}</div></div>`).join('')}</div></div>`;
+  if (c.type === 'waffle') return `<div class="an-scroll"><div class="an-rows">${c.rows.map((r, ri) => `<div class="an-row"><span class="r">${esc(r.centre)}</span><div class="an-waffle dd-hit" tabindex="0"${ddAttr(ri, -1, r.centre)} title="Click for drill-down">${r.squares.map(s => `<i style="background:${s}" title="${esc(labelOf(m, s))}"></i>`).join('')}<span class="caption" style="margin-left:6px">${r.squares.length} students</span></div></div>`).join('')}</div></div>`;
   if (c.type === 'stem'){ const max = Math.max(50, ...c.rows.map(r => r.pct));
-    return `<div class="an-scroll"><div class="an-rows">${c.rows.map(r => { const w = r.pct / max * 88; return `<div class="an-row"><span class="r">${esc(r.centre)}</span><div class="an-stem" tabindex="0"${tip(r.centre, labelOf(m, r.color), null, [['', r.pct + '% of students at Fire level']])}><span class="ln" style="width:${w}%"></span><span class="dt" style="left:${w}%;background:${r.color}"></span><span class="vl" style="left:calc(${w}% + 14px)">${r.pct}%</span></div></div>`; }).join('')}</div></div>`; }
+    return `<div class="an-scroll"><div class="an-rows">${c.rows.map((r, ri) => { const w = r.pct / max * 88; return `<div class="an-row"><span class="r">${esc(r.centre)}</span><div class="an-stem dd-hit" tabindex="0"${ddAttr(ri, -1, r.centre)}${tip(r.centre, labelOf(m, r.color), null, [['', r.pct + '% of students at Fire level'], ['', 'Click for drill-down']])}><span class="ln" style="width:${w}%"></span><span class="dt" style="left:${w}%;background:${r.color}"></span><span class="vl" style="left:calc(${w}% + 14px)">${r.pct}%</span></div></div>`; }).join('')}</div></div>`; }
   if (c.type === 'trail'){ const bc = {calibrated:m.legend[0].color, mild:m.legend[1].color, large:m.legend[2].color}, bl = {calibrated:'Calibrated', mild:'Mild gap', large:'Large gap'};
     const cols = `repeat(${c.columns.length},1fr)`;
     return `<div class="an-scroll"><div class="an-rows"><div class="an-row"><span></span><div class="an-axis" style="grid-template-columns:${cols}">${c.columns.map(h => `<span>${esc(h)}</span>`).join('')}</div></div>
-      ${c.rows.map(r => `<div class="an-row"><span class="r">${esc(r.centre)}</span><div class="an-trail" style="grid-template-columns:${cols}">${r.bands.map((b, i) => `<i tabindex="0" style="background:${bc[b]}"${tip(r.centre, c.columns[i], null, [['', bl[b]]])}></i>`).join('')}</div></div>`).join('')}</div></div>`; }
+      ${c.rows.map((r, ri) => `<div class="an-row"><span class="r">${esc(r.centre)}</span><div class="an-trail" style="grid-template-columns:${cols}">${r.bands.map((b, i) => `<i class="dd-hit" tabindex="0"${ddAttr(ri, i, r.centre + ', ' + c.columns[i])} style="background:${bc[b]}"${tip(r.centre, c.columns[i], null, [['', bl[b]], ['', 'Click for drill-down']])}></i>`).join('')}</div></div>`).join('')}</div></div>`; }
   return '';
 }
 function renderMetric(m){
+  if (!DD || DD.metric !== m.key) DD = null;
   const i = METRICS.indexOf(m), prev = METRICS[(i + METRICS.length - 1) % METRICS.length], next = METRICS[(i + 1) % METRICS.length];
+  const unit = m.chart.type === 'heatmap' ? 'cell' : m.chart.type === 'trail' ? 'dot' : m.chart.type === 'waffle' ? 'section' : 'bar';
   $('#main').innerHTML = `<section class="view wrap" aria-label="${esc(m.name)}">
     <div class="ax-sub"><button class="ax-back" data-goto="analytics">← Analytics</button></div>
     <div class="screen-head"><div><div class="mono-label">${esc(m.eyebrow)} · ${m.category === 'Behavioral' ? 'Behavioural' : m.category}</div><h1 class="display-sm" style="margin-top:6px">${esc(m.title)}</h1></div>
       <div style="display:flex;gap:8px"><button class="btn btn-secondary btn-sm" data-goto="analytics-${esc(prev.key)}">← ${esc(prev.name.split(' (')[0])}</button><button class="btn btn-secondary btn-sm" data-goto="analytics-${esc(next.key)}">${esc(next.name.split(' (')[0])} →</button></div></div>
     <div class="ax-card">
       <div class="an-legend">${m.legend.map(l => `<span><i class="sw" style="background:${l.color}"></i>${esc(l.label)}</span>`).join('')}</div>
+      <p class="dd-hint">${icon('info')}Click any ${unit} to drill down to label counts and students.</p>
       ${metricChart(m)}
       <div class="an-formula">${esc(m.formula)}</div></div>
+    <div id="dd" aria-live="polite"></div>
     <p class="caption" style="margin-top:12px">Illustrative school data · 9 sections · 8 assessments from Unit Test 1 to the Annual Exam.</p></section>`;
+  drawDD(m);
+}
+function drawDD(m, scroll){
+  const host = $('#dd'); if (!host) return;
+  $$('.dd-hit.dd-on').forEach(x => x.classList.remove('dd-on'));
+  if (!DD){ host.innerHTML = ''; return; }
+  const sel = $(`[data-dd="${DD.ri}:${DD.ci}"]`); sel && sel.classList.add('dd-on');
+  const total = DD.vals.reduce((a, b) => a + b, 0); if (!total){ host.innerHTML = ''; return; }
+  const prevTotal = DD.prevVals ? DD.prevVals.reduce((a, b) => a + b, 0) : 0;
+  const where = `${esc(DD.rowKey)} · ${esc(DD.colKey)}`;
+  let h = `<div class="dd-lvl" style="--acc:var(--brand-gold)"><div class="dd-tag">Level 1 · Label distribution</div><div class="dd-t">${where}</div>
+      <div class="dd-s">Click a segment to see counts and change from the previous assessment</div>
+      <div class="dd-bar">${DD.vals.map((v, i) => { const pct = Math.round(v / total * 100); return pct < 1 ? '' : `<button data-ddl="${i}" style="width:${pct}%;background:${m.legend[i].color}" class="${DD.label === i ? 'on' : ''}" aria-label="${esc(m.legend[i].label)}: ${pct}%"${tip(m.legend[i].label, null, null, [['', pct + '% · ' + v + ' students']])}></button>`; }).join('')}</div>
+      <button class="ax-back" data-ddx style="margin-top:12px">Close drill-down</button></div>`;
+  if (DD.label != null){
+    h += `<div class="dd-lvl" style="--acc:var(--status-positive-icon)"><div class="dd-tag">Level 2 · Counts and change from previous assessment</div><div class="dd-t">${where} · ${total} students</div>
+      <div class="dd-s">Click any card to see the students in that category</div>
+      <div class="dd-cards" style="grid-template-columns:repeat(${Math.min(DD.vals.length, 4)},minmax(0,1fr))">${DD.vals.map((v, i) => {
+        const pct = Math.round(v / total * 100), pp = DD.prevVals && prevTotal ? Math.round((DD.prevVals[i] || 0) / prevTotal * 100) : null, d = pp == null ? null : pct - pp;
+        const dt = d == null ? 'no previous assessment' : d > 0 ? `+${d}% from prev` : d < 0 ? `${d}% from prev` : 'no change';
+        const dc = d == null || d === 0 ? 'var(--ink-tertiary)' : d > 0 ? 'var(--status-positive-text)' : '#d85a30', col = m.legend[i].color;
+        return `<button class="dd-card${DD.label === i ? ' on' : ''}" data-ddl="${i}" style="--c:${col}"><b>${v}</b><span>${esc(m.legend[i].label)}</span><i><i style="width:${pct}%"></i></i><em style="color:${dc}">${dt}</em></button>`; }).join('')}</div></div>`;
+    const count = DD.vals[DD.label] || 0, pages = Math.max(1, Math.ceil(count / DD_PAGE)), start = (DD.page - 1) * DD_PAGE;
+    const seed = `${m.key}::${DD.rowKey}::${DD.colKey}::${DD.label}`, lab = m.legend[DD.label], col = lab.color;
+    const rows = Array.from({length:Math.max(0, Math.min(DD_PAGE, count - start))}, (_, j) => studentNameFor(seed, start + j));
+    h += `<div class="dd-lvl" style="--acc:var(--ink-tertiary)"><div class="dd-tag">Level 3 · Students · ${esc(lab.label)}</div><div class="dd-t">${where} · ${count} student${count !== 1 ? 's' : ''} in this category</div>
+      ${count === 0 ? '<p class="caption" style="font-style:italic;margin:6px 0 0">No students in this category</p>' : `<div class="an-scroll"><table class="dd-tbl"><thead><tr><th>Name</th><th>${esc(m.name)}</th></tr></thead><tbody>${rows.map(n => `<tr><td>${esc(n)}</td><td><span class="dd-pill" style="--c:${col}">${esc(lab.label)}</span></td></tr>`).join('')}</tbody></table></div>
+      ${pages > 1 ? `<div class="dd-pages"><button class="btn btn-secondary btn-sm" data-ddp="-1" ${DD.page <= 1 ? 'disabled' : ''}>← Prev</button><span class="caption">Page ${DD.page} of ${pages}</span><button class="btn btn-secondary btn-sm" data-ddp="1" ${DD.page >= pages ? 'disabled' : ''}>Next →</button></div>` : ''}`}</div>`;
+  }
+  host.innerHTML = h;
+  if (scroll) host.scrollIntoView({behavior: reduced() ? 'auto' : 'smooth', block: 'nearest'});
+}
+function ddClick(e){
+  const m = METRICS.find(x => x.key === subKey()); if (!m || UI.screen !== 'analytics') return;
+  const hit = e.target.closest('[data-dd]');
+  if (hit){
+    const [ri, ci] = hit.dataset.dd.split(':').map(Number);
+    if (DD && DD.ri === ri && DD.ci === ci){ DD = null; drawDD(m); return; }
+    DD = Object.assign({metric:m.key, ri, ci, label:null, page:1}, ddSelection(m, ri, ci));
+    track('analytics_drilldown', {metric:m.key, level:1}); return drawDD(m, true);
+  }
+  const l = e.target.closest('[data-ddl]');
+  if (l && DD){ DD.label = +l.dataset.ddl; DD.page = 1; track('analytics_drilldown', {metric:m.key, level:3}); drawDD(m, true); const f = $(`.dd-card[data-ddl="${DD.label}"]`); f && f.focus(); return; }
+  const p = e.target.closest('[data-ddp]');
+  if (p && DD){ DD.page += +p.dataset.ddp; drawDD(m); const b = $(`[data-ddp="${p.dataset.ddp}"]`); b && !b.disabled && b.focus(); return; }
+  if (e.target.closest('[data-ddx]')){ DD = null; drawDD(m); }
 }
 function anClick(e){
+  ddClick(e);
   const b = e.target.closest('[data-an-tab]'); if (!b) return;
   anTab = b.dataset.anTab; renderAnalytics(); const f = $(`[data-an-tab="${anTab}"]`); f && f.focus();
 }
